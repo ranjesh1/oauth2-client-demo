@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: oauth2-client-demo
+  security:
+    oauth2:
+      client:
+        registration:
+          swift-oauth-client:
+            provider: swift
+            client-id: bdsajdskjadsd
+            authorization-grant-type: client_credentials
+        provider:
+          swift:
+            token-uri: https://sandbox.swift.com/oauth2/v1/token
+
+
+swift-api:
+  cert-path: /cert.pem
+  private-key-path: /privateKey.pem
+  issuer: dummyissuer
+  subject: CN=desktop, O=sandbox, O=swift
+  audience: https://sandbox.swift.com/oauth2/v1/token
+  consumerKey: dummyConsumerKey
+  consumerSecret: dummyConsumerSecret
+  scope: swift.apitracker
+  resourceUrl: https://sandbox.swift.com/swift-apitracker/v5/payments/%s/transactions
+  grantType: urn:ietf:params:oauth:grant-type:jwt-bearer
+logging:
+  level:
+    org.springframework.web.reactive.function.client: DEBUG
+    org.springframework.security.oauth2.client: DEBUG
+    org.springframework.security.oauth2.core: DEBUG
