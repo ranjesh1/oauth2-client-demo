@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class SwiftApiProperties(
     var certPath: String,
     var privateKeyPath: String,
-    var issuer: String, §
+    var issuer: String,
     var subject: String,
     var audience: String,
     var consumerKey: String,
