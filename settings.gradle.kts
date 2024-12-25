@@ -1,1 +1,1 @@
-rootProject.name = "demo"
+rootProject.name = "oauth2-client-demo"
