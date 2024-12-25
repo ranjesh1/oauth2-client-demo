@@ -22,31 +22,17 @@ import java.time.Instant
 @Configuration
 @EnableConfigurationProperties(SwiftApiProperties::class)
 class OAuth2ClientConfig(
-    val clientRegistrationRepository: ClientRegistrationRepository,
-    val authorizedClientRepository: OAuth2AuthorizedClientRepository,
-    val jwtTokenUtil: JwtTokenUtil,
-    val swiftApiProperties: SwiftApiProperties
+        val clientRegistrationRepository: ClientRegistrationRepository,
+        val authorizedClientRepository: OAuth2AuthorizedClientRepository,
+        val jwtTokenUtil: JwtTokenUtil,
+        val swiftApiProperties: SwiftApiProperties
 ) {
-
-
-    @Bean
-    fun webClient(authorizedClientManager: OAuth2AuthorizedClientManager): WebClient {
-        val oauth2Filter = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-        oauth2Filter.setDefaultClientRegistrationId("swift-oauth-client")
-        return WebClient.builder()
-            .apply(oauth2Filter.oauth2Configuration())
-            .build()
-    }
-
-
     @Bean
     fun authorizedClientManager(): OAuth2AuthorizedClientManager {
         val authorizedClientManager = DefaultOAuth2AuthorizedClientManager(
-            clientRegistrationRepository,
-            authorizedClientRepository
+                clientRegistrationRepository,
+                authorizedClientRepository
         )
-
-
         authorizedClientManager.setAuthorizedClientProvider { context ->
             val clientRegistration = context.clientRegistration
             val jwtBearerToken = jwtTokenUtil.createJwtToken()
@@ -54,41 +40,47 @@ class OAuth2ClientConfig(
             formData.add("grant_type", swiftApiProperties.grantType)
             formData.add("assertion", jwtBearerToken)
             formData.add("scope", swiftApiProperties.scope)
-
             val body = BodyInserters
-                .fromFormData(formData)
+                    .fromFormData(formData)
             WebClient.builder()
-                .defaultHeader("Content-Type", "application/x-www-form-urlencoded")
-                .defaultHeaders { headers ->
-                    headers.setBasicAuth(
-                        swiftApiProperties.consumerKey,
-                        swiftApiProperties.consumerSecret
-                    )
-                }
-                .build()
-                .post()
-                .uri(URI(clientRegistration.providerDetails.tokenUri))
-                .body(body)
-                .retrieve()
-                .bodyToMono<Map<String, Any>>()
-                .map { responseMap ->
-                    OAuth2AuthorizedClient(
-                        clientRegistration, context.principal.name, OAuth2AccessToken(
-                            OAuth2AccessToken.TokenType.BEARER,
-                            responseMap?.let {
-                                it["access_token"] as String
-                            },
-                            Instant.now(),
-                            Instant.now().plusSeconds(1799)
+                    .defaultHeader("Content-Type", "application/x-www-form-urlencoded")
+                    .defaultHeaders { headers ->
+                        headers.setBasicAuth(
+                                swiftApiProperties.consumerKey,
+                                swiftApiProperties.consumerSecret
                         )
-                    )
-                }
-                .block()
+                    }
+                    .build()
+                    .post()
+                    .uri(URI(clientRegistration.providerDetails.tokenUri))
+                    .body(body)
+                    .retrieve()
+                    .bodyToMono<Map<String, Any>>()
+                    .map { responseMap ->
+                        OAuth2AuthorizedClient(
+                                clientRegistration, context.principal.name, OAuth2AccessToken(
+                                OAuth2AccessToken.TokenType.BEARER,
+                                responseMap?.let {
+                                    it["access_token"] as String
+                                },
+                                Instant.now(),
+                                Instant.now().plusSeconds(1799)
+                        )
+                        )
+                    }
+                    .block()
 
         }
-
         return authorizedClientManager
     }
 
+    @Bean
+    fun webClient(authorizedClientManager: OAuth2AuthorizedClientManager): WebClient {
+        val oauth2Filter = ServletOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
+        oauth2Filter.setDefaultClientRegistrationId("swift-oauth-client")
+        return WebClient.builder()
+                .apply(oauth2Filter.oauth2Configuration())
+                .build()
+    }
 
 }

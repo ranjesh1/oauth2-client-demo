@@ -7,7 +7,7 @@ spring:
         registration:
           swift-oauth-client:
             provider: swift
-            client-id: bdsajdskjadsd
+            client-id: someBankClient
             authorization-grant-type: client_credentials
         provider:
           swift:

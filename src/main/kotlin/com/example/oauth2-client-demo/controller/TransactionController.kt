@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 class TransactionController(val swiftTransactionService: SwiftTransactionService) {
     @GetMapping("/transactions/{uetr}")
     fun getTransactionStatus(@PathVariable uetr: String): ResponseEntity<TransactionStatus> {
-        // sample uetr: d2ecb184-b622-41e9-a2a3-2a2ae2dbcce4
         val status = swiftTransactionService.getTransactionStatus(uetr)
         return ResponseEntity.ok(TransactionStatus(status))
     }
